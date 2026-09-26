@@ -102,6 +102,5 @@ Run: `pip install -r requirements.txt` → `python psp_downloader.py`
 
 **Выход / Вихід / Output:** `MP4 480x272 • H.264 Baseline • AAC` 📼
 
-*Сделано для тех, у кого PSP до сих пор жива.* 💜
 
 </div>
