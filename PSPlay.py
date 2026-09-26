@@ -1,16 +1,7 @@
 
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""PSP Downloader — ОДИН ФАЙЛ для сборки в .exe (PyInstaller).
 
-Универсальная качалка фильмов, мультфильмов, сериалов и аниме в формат PSP.
-Источники: AniLibria (API) • HDRezka (парсинг+Anubis) • KinoVibe (парсинг) • YouTube (yt-dlp).
-Выход: MP4 480x272, H.264 Baseline L3.0, AAC — папка VIDEO/ на PSP.
-
-Сборка:
-    pip install -r requirements.txt
-    build_exe.bat
-"""
 import gzip
 import hashlib
 import http.client
