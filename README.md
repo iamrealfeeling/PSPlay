@@ -23,8 +23,8 @@
 
 | | |
 |---|---|
-| 🎞 **4 источника** | AniLibria (API) • HDRezka • KinoVibe • YouTube |
-| 📺 **Всё подряд** | фильмы, сериалы, мультфильмы, аниме, трейлеры |
+| 🎞 **5 источников** | AniLibria (API) • HDRezka • KinoVibe • Anwap • YouTube |
+| 📺 **Всё подряд** | фильмы, сериалы, мультфильмы, аниме |
 | 📥 **Очередь загрузок** | скорость, ETA, прогресс, отмена, ретраи, лог |
 | 🖥 **3 страницы** | Поиск • Загрузки • Настройки |
 | 🌍 **3 языка** | Українська • Русский • English (автоопределение + конфиг) |
@@ -70,10 +70,10 @@ python psp_downloader.py
 
 ## ua Українська
 
-**PSPlay** — завантажувач кіно у форматі PSP: чотири джерела, жива черга
+**PSPlay** — завантажувач кіно у форматі PSP: 5 джерел, жива черга
 завантажень і темний анімований інтерфейс трьома мовами.
 
-- 🎞 **4 джерела:** AniLibria • HDRezka • KinoVibe • YouTube
+- 🎞 **5 джерел:** AniLibria • HDRezka • KinoVibe • Anwap • YouTube
 - 📥 **Черга:** швидкість, ETA, прогрес, повтори, лог
 - 🌍 **Мова:** Українська / Русский / English (автовизначення, зберігається)
 - 📦 **Один .exe:** `build_exe.bat` → `dist\PSPlay.exe`
@@ -85,10 +85,10 @@ python psp_downloader.py
 
 ## en English
 
-**PSPlay** — pocket cinema for PSP: four sources, live download queue,
+**PSPlay** — pocket cinema for PSP: 5 sources, live download queue,
 dark animated UI in three languages.
 
-- 🎞 **4 sources:** AniLibria • HDRezka • KinoVibe • YouTube
+- 🎞 **5 sources:** AniLibria • HDRezka • KinoVibe • Anwap • YouTube
 - 📥 **Queue:** speed, ETA, progress, retries, log
 - 🌍 **Languages:** Українська / Русский / English (auto-detect, saved)
 - 📦 **Single .exe:** `build_exe.bat` → `dist\PSPlay.exe`
