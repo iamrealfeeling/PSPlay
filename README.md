@@ -9,7 +9,6 @@
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![PSP](https://img.shields.io/badge/PSP-1000%20%7C%202000%20%7C%203000%20%7C%20Go-red)](https://en.wikipedia.org/wiki/PlayStation_Portable)
 
-[🇺🇦 Українська](#-українська) • [🇷🇺 Русский](#-русский) • [en English](#-english)
 
 </div>
 
