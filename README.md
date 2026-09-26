@@ -4,20 +4,18 @@
 
 ### *Pocket cinema for PSP*
 
-**Фильмы • Сериалы • Мультфильмы • Аниме → прямо на твою PSP**
-
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![PSP](https://img.shields.io/badge/PSP-1000%20%7C%202000%20%7C%203000%20%7C%20Go-red)](https://en.wikipedia.org/wiki/PlayStation_Portable)
 
-[🇺🇦 Українська](#-українська) • [🇷🇺 Русский](#-русский) • [🇬🇧 English](#-english)
+[🇺🇦 Українська](#-українська) • [🇷🇺 Русский](#-русский) • [en English](#-english)
 
 </div>
 
 ---
 
-## 🇷🇺 Русский
+## ru Русский
 
 **PSPlay** — качалка кино в формате PSP с четырьмя источниками, живой очередью
 загрузок и тёмным анимированным интерфейсом на трёх языках.
@@ -75,7 +73,7 @@ python psp_downloader.py
 
 ---
 
-## 🇺🇦 Українська
+## ua Українська
 
 **PSPlay** — завантажувач кіно у форматі PSP: чотири джерела, жива черга
 завантажень і темний анімований інтерфейс трьома мовами.
@@ -90,7 +88,7 @@ python psp_downloader.py
 
 ---
 
-## 🇬🇧 English
+## en English
 
 **PSPlay** — pocket cinema for PSP: four sources, live download queue,
 dark animated UI in three languages.
