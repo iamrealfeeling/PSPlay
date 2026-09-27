@@ -1,7 +1,15 @@
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""PSP Downloader — ОДИН ФАЙЛ для сборки в .exe (PyInstaller).
 
+Универсальная качалка фильмов, мультфильмов, сериалов и аниме в формат PSP.
+Источники: AniLibria (API) • HDRezka (парсинг+Anubis) • KinoVibe (парсинг) • YouTube (yt-dlp).
+Выход: MP4 480x272, H.264 Baseline L3.0, AAC — папка VIDEO/ на PSP.
+
+Сборка:
+    pip install -r requirements.txt
+    build_exe.bat
+"""
 import gzip
 import hashlib
 import http.client
@@ -239,9 +247,24 @@ ANI_HEADERS = {"User-Agent": "PSP-Downloader/2.0 (Windows)", "Accept": "applicat
 
 
 def ani_get_json(url: str):
-    req = urllib.request.Request(url, headers=ANI_HEADERS)
-    with urllib.request.urlopen(req, timeout=20) as r:
-        return json.loads(r.read().decode("utf-8"))
+    last = "?"
+    for a in range(3):
+        try:
+            req = urllib.request.Request(url, headers=ANI_HEADERS)
+            with urllib.request.urlopen(req, timeout=20) as r:
+                raw = r.read().decode("utf-8").strip()
+            if not raw:
+                last = "пустой ответ API"
+                time.sleep(1 + a)
+                continue
+            return json.loads(raw)
+        except json.JSONDecodeError as e:
+            last = f"битый JSON: {e}"
+            time.sleep(1 + a)
+        except Exception as e:
+            last = str(e)[:100]
+            time.sleep(1 + a)
+    raise RuntimeError(f"AniLibria API не отвечает ({last})")
 
 
 def ani_search(query: str, limit: int = 20):
@@ -548,7 +571,13 @@ class Session:
              "Accept": "application/json, text/javascript, */*; q=0.01"})
         if status != 200:
             raise RuntimeError(f"AJAX HTTP {status} на {path}")
-        return json.loads(data.decode("utf-8", "ignore"))
+        txt = data.decode("utf-8", "ignore").strip()
+        if not txt:
+            raise RuntimeError(f"AJAX пустой ответ на {path} (повторите чуть позже)")
+        try:
+            return json.loads(txt)
+        except json.JSONDecodeError as e:
+            raise RuntimeError(f"AJAX битый JSON на {path}: {e}")
 
     # ---------- Anubis ----------
     @staticmethod
@@ -823,7 +852,7 @@ def _raw_request(host: str, use_ssl: bool, path: str, headers: dict,
     ip = doh_resolve(host)
     raw = socket.create_connection(
         (ip, port or (443 if use_ssl else 80)), timeout=timeout)
-    raw.settimeout(30)  # зависший recv — в ретрай, а не в вечность
+    raw.settimeout(20)  # зависший recv — в ретрай и на другую ноду, а не в вечность
     sock = ssl.create_default_context().wrap_socket(
         raw, server_hostname=host) if use_ssl else raw
     lines = [f"GET {path} HTTP/1.1", f"Host: {host}"] + \
@@ -929,52 +958,71 @@ def download_mp4(sess: Session, url: str, referer: str, dest: str, size: int = N
     """
     import threading
 
-    final, total = head_info(sess, url.split(":hls:")[0], referer)
+    final, total = None, None
+    edge = {}
+    edge_lock = threading.Lock()
+
+    def re_resolve():
+        f, t = head_info(sess, url.split(":hls:")[0], referer)
+        p = urllib.parse.urlsplit(f)
+        edge.update(url=f, host=p.hostname, use_ssl=p.scheme == "https",
+                    base=p.path + (("?" + p.query) if p.query else ""),
+                    port=p.port)
+        return t
+
+    total = re_resolve()
     size = size or total
-    parts = urllib.parse.urlsplit(final)
-    host = parts.hostname
-    use_ssl = parts.scheme == "https"
-    base_path = parts.path + (("?" + parts.query) if parts.query else "")
 
     def fetch_range(a, b):
         last = None
-        for _ in range(3):
-            if cancel and cancel():
-                raise RuntimeError(self.T("cancel_by_user") if "self" in dir() else "cancelled")
-            try:
-                st, hd, (sock, rest) = _raw_request(
-                    host, use_ssl, base_path,
-                    {"User-Agent": UA, "Referer": referer,
-                     "Range": f"bytes={a}-{b}"}, timeout=25, port=parts.port)
-                code = int(st.split()[1])
-                if code not in (200, 206):
+        # до 3 разных edge-нод: CDN ротирует их на каждый запрос,
+        # дохлая/висящая нода заменяется живой
+        for _edge_try in (1, 2, 3):
+            h, use_ssl = edge["host"], edge["use_ssl"]
+            base, port = edge["base"], edge.get("port")
+            for _ in range(2):
+                if cancel and cancel():
+                    raise RuntimeError("cancelled")
+                try:
+                    st, hd, (sock, rest) = _raw_request(
+                        h, use_ssl, base,
+                        {"User-Agent": UA, "Referer": referer,
+                         "Range": f"bytes={a}-{b}"}, timeout=20, port=port)
+                    code = int(st.split()[1])
+                    if code not in (200, 206):
+                        try:
+                            sock.close()
+                        except Exception:
+                            pass
+                        last = st[:60]
+                        continue
+                    need = (b - a + 1) if code == 206 else None
+                    data = rest
+                    while need is None or len(data) < need:
+                        ch = sock.recv(262144)
+                        if not ch:
+                            break
+                        data += ch
                     try:
                         sock.close()
                     except Exception:
                         pass
-                    last = st[:60]
-                    continue
-                need = (b - a + 1) if code == 206 else None
-                data = rest
-                while need is None or len(data) < need:
-                    ch = sock.recv(262144)
-                    if not ch:
-                        break
-                    data += ch
-                try:
-                    sock.close()
-                except Exception:
-                    pass
-                if need is not None and len(data) < need:
-                    # сервер молча оборвал кусок — не склеиваем огрызок, а ретраим
-                    last = f"short {len(data)}/{need}"
-                    continue
-                return data[:need] if need else data
-            except RuntimeError:
-                raise
+                    if need is not None and len(data) < need:
+                        # сервер молча оборвал кусок — не склеиваем огрызок, а ретраим
+                        last = f"short {len(data)}/{need} @{h}"
+                        continue
+                    return data[:need] if need else data
+                except RuntimeError:
+                    raise
+                except Exception as e:
+                    last = f"{str(e)[:70]} @{h}"
+            # кусок не дался на этой ноде — пробуем свежую
+            try:
+                with edge_lock:
+                    re_resolve()
             except Exception as e:
-                last = str(e)[:80]
-        raise RuntimeError(f"Range {a}-{b}: {last}")
+                last = f"{last} | edge: {str(e)[:70]}"
+        raise RuntimeError(f"Range {a}-{b}: {last} (3 ноды исчерпаны)")
 
     if size and size > 4 * 1024 * 1024:
         CHUNK = 8 * 1024 * 1024
@@ -2354,7 +2402,7 @@ SOURCES = [
     ("anilibria", "AniLibria", "Аниме • API"),
     ("rezka", "HDRezka", "Всё • озвучки"),
     ("kinovibe", "KinoVibe", "Фильмы • сериалы"),
-    ("anwap", "Anwap", "Фильмы • телефон"),
+    ("anwap", "Anwap", "Фильмы"),
     ("youtube", "YouTube", "Видео • трейлеры"),
 ]
 
